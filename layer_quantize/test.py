@@ -4,6 +4,7 @@ from tensorflow import keras
 from tensorflow.keras.models import load_model
 from sklearn.metrics import accuracy_score
 import numpy as np
+import time
 
 def evaluate_model(interpreter):
   input_index = interpreter.get_input_details()[0]["index"]
@@ -50,7 +51,14 @@ test_images = test_images / 255.0
 
 
 # evaluate models
+time_quant = time.time()
 quant_test_accuracy = evaluate_model(quant_interpreter)
+print("Time take by quantized tf lite  model is ",time.time()-time_quant)
+
+
+time_tfmodel = time.time()
 test_accuracy = evaluate_model(interpreter)
-print("Accuracy of quant tf lite model is",quant_test_accuracy)
+print("Time take by tf lite  model is ",time.time()-time_tfmodel)
+print("\n")
+print("Accuracy of quantized tf lite model is",quant_test_accuracy)
 print("Accuracy of tf lite model is",test_accuracy)

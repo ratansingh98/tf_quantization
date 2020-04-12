@@ -4,6 +4,7 @@ from tensorflow import keras
 from tensorflow.keras.models import load_model
 from sklearn.metrics import accuracy_score
 import numpy as np
+import time
 
 def evaluate_model(interpreter):
   input_index = interpreter.get_input_details()[0]["index"]
@@ -25,8 +26,6 @@ def evaluate_model(interpreter):
     output = interpreter.tensor(output_index)
     digit = np.argmax(output()[0])
     prediction_digits.append(digit)
-
-  print('\n')
   # Compare prediction results with ground truth labels to calculate accuracy.
   prediction_digits = np.array(prediction_digits)
   accuracy = (prediction_digits == test_labels).mean()
@@ -52,11 +51,22 @@ test_images = test_images / 255.0
 
 
 # evaluate models
-quant_test_accuracy = evaluate_model(quant_interpreter)
-test_accuracy = evaluate_model(interpreter)
-
+time_model = time.time()
 y_pred = model.predict(test_images)
 y_pred = np.argmax(y_pred, axis=1)
+print("Time take by model is ",time.time()-time_model)
+
+
+
+time_quant = time.time()
+quant_test_accuracy = evaluate_model(quant_interpreter)
+print("Time take by quantized tf lite  model is ",time.time()-time_quant)
+
+
+time_tfmodel = time.time()
+test_accuracy = evaluate_model(interpreter)
+print("Time take by tf lite  model is ",time.time()-time_tfmodel)
+print("\n")
 print("Accuracy of normal model",accuracy_score(y_pred,test_labels))
-print("Accuracy of quant tf lite model is",quant_test_accuracy)
+print("Accuracy of quantized tf lite model is",quant_test_accuracy)
 print("Accuracy of tf lite model is",test_accuracy)
