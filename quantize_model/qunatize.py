@@ -18,6 +18,7 @@ q_aware_model.compile(optimizer='adam',
 # convet quantize model to tflite
 quant_converter = tf.lite.TFLiteConverter.from_keras_model(q_aware_model)
 quant_converter.optimizations = [tf.lite.Optimize.DEFAULT]
+
 quantized_tflite_model = quant_converter.convert()
 
 # Convert normal model to tflite

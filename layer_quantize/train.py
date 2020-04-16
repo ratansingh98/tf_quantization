@@ -4,6 +4,33 @@ import tensorflow_model_optimization as tfmot
 from tensorflow.keras.models import load_model
 import os
 from tensorflow import keras
+import time
+
+def evaluate_model(interpreter):
+  input_index = interpreter.get_input_details()[0]["index"]
+  output_index = interpreter.get_output_details()[0]["index"]
+
+  # Run predictions on every image in the "test" dataset.
+  prediction_digits = []
+  for i, test_image in enumerate(test_images):
+    # Pre-processing: add batch dimension and convert to float32 to match with
+    # the model's input data format.
+    test_image = np.expand_dims(test_image, axis=0).astype(np.float16)
+    interpreter.set_tensor(input_index, test_image)
+
+    # Run inference.
+    interpreter.invoke()
+
+    # Post-processing: remove batch dimension and find the digit with highest
+    # probability.
+    output = interpreter.tensor(output_index)
+    digit = np.argmax(output()[0])
+    prediction_digits.append(digit)
+
+  # Compare prediction results with ground truth labels to calculate accuracy.
+  prediction_digits = np.array(prediction_digits)
+  accuracy = (prediction_digits == test_labels).mean()
+  return accuracy
 
 # Load MNIST dataset
 mnist = keras.datasets.mnist
@@ -42,7 +69,7 @@ quantize_model.compile(optimizer='adam',
               loss='sparse_categorical_crossentropy',
               metrics=['accuracy'])
 
-quantize_model.summary()
+
 
 
 # train normal model
@@ -53,7 +80,6 @@ model.fit(
   epochs=10,
   validation_split=0.2,
 )
-
 
 # `quantize_model` requires a recompile.
 quantize_model.compile(optimizer='adam',
@@ -93,3 +119,16 @@ with open(tf_file, 'wb') as f:
 #compare file size
 print("Float model in Mb:", os.path.getsize(tf_file) / float(2**20))
 print("Quantized model in Mb:", os.path.getsize(quant_file) / float(2**20))
+
+# evaluate models
+time_quant = time.time()
+quant_test_accuracy = evaluate_model(quantized_tflite_model)
+print("Time take by quantized tf lite  model is ",time.time()-time_quant)
+
+
+time_tfmodel = time.time()
+test_accuracy = evaluate_model(tflite_model)
+print("Time take by tf lite  model is ",time.time()-time_tfmodel)
+print("\n")
+print("Accuracy of quantized tf lite model is",quant_test_accuracy)
+print("Accuracy of tf lite model is",test_accuracy)
