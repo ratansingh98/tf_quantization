@@ -12,6 +12,7 @@ It is Post-training quantization conversion technique that can reduce model size
 
 ## Model Quantization
 
+Quantization works by reducing the precision of the numbers used to represent a model's parameters, which by default are 32-bit floating point numbers. This results in a smaller model size and faster computation.
 
 This was test on i5 8600K and nivida gtx 1080.
 |S No.|  Name |  Test Accuracy  |Speed  |   Model Size|
